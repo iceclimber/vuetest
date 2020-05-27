@@ -1,0 +1,94 @@
+<html>
+    <header>
+        <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        
+    </header>
+    <body>
+        <div id="app">
+            <h1>Star Wars</h1>
+            <input type="text" v-model="search" @keyup="filterResults" id="search"/>
+            <table>
+                <tr class="bold-text">
+                  <td>Name</td>
+                  <td>Height</td>
+                  <td>Hair</td>
+                  <td>Skin</td>
+                </tr>
+                <tr v-for="result in filtered_result" class="border_bottom">
+                  <td>{{result.name}}</td>
+                  <td>{{result.height}}</td>
+                  <td>{{result.hair_color}}</td>
+                  <td>{{result.skin_color}}</td>
+                </tr>
+              </table>
+        </div>
+    </body>
+    <footer>
+        <script type="text/javascript">
+            var app = new Vue({
+                el: "#app",
+
+                data: {
+                    filtered_result: [],
+                    result: [],
+                    search: "",
+                },
+                methods: {
+                    filterResults(){
+                        if(this.search.length > 2){
+                            this.filtered_result = this.result.filter(people => people.name.toLowerCase().indexOf(this.search.toLowerCase()) > -1)
+                            return
+                        }
+                        this.filtered_result = this.result
+                    },
+                    fetchAllPeople: async function(){
+                        url = "http://swapi.dev/api/people/"
+                        start = true
+                        count = 1
+                        while(count > this.result.length && url != null){
+                            if(start){
+                                start = false
+                                if(url != null){
+                                    url = url.replace('http', 'https')
+                                    let people = await fetch(url, {
+                                    headers:{
+                                        'Content-type': 'application/json'
+                                    }
+                                    })
+                                    people = await people.json();
+                                    count = people.count
+                                    url = people.next
+                                    this.result = this.result.concat(people.results)
+                                    start = true
+                                }
+                            }
+                        }
+                        this.filtered_result = this.result
+                    }
+                },
+                mounted(){
+                    this.fetchAllPeople();
+                }
+            })
+        </script>
+        <style type="text/css">
+            #app{
+                width: 80%;
+                margin-left:10%;
+            }
+            #search{
+                width: 100%;
+            }
+            #search:focus{
+                box-shadow: 0 0 5px rgba(81, 203, 238, 1);
+                border: 1px solid rgba(81, 203, 238, 1);
+            }
+            .bold-text{
+                font-weight: bold;
+            }
+            tr.border_bottom td {
+                border-bottom:1pt solid black;
+            }
+        </style>
+    </footer>
+</html>
